@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub完結型・無制限AI Studio</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -435,7 +436,7 @@
             try {
                 const systemMessage = systemPromptInput.value.trim();
                 const selectedModel = modelSelect.value;
-                const targetUrl = "https://models.inference.ai.azure.com/chat/completions";
+                const targetUrl = "https://models.github.ai/inference/chat/completions";
 
                 const messagesPayload = [
                     { role: "system", content: systemMessage },
@@ -458,8 +459,17 @@
             } catch (error) {
                 console.error("API Error:", error);
                 
-                let errorHtml = `❌ **通信エラーが発生しました**:\n${error.message}\n\n`;
-                errorHtml += `💡 **対策**: 「設定・難読化ツール」から通信モードを「AllOrigins プロキシ」に変更して再度お試しいただくか、GitHub Tokenの権限をご確認ください。`;
+                let errorHtml = `❌ **通信エラーが発生しました**:\n${error.message || '接続が不許可になりました'}\n\n`;
+                
+                if (error.toString().includes("BLOCKED_BY_CLIENT") || error.name === "TypeError") {
+                    errorHtml += `⚠️ **【原因】 広告ブロック（AdBlock / uBlock / Brave Shieldなど）による遮断**\n\n`;
+                    errorHtml += `ブラウザの拡張機能やセキュリティ機能が \`models.github.ai\` (GitHub Models API) への通信を「トラッカー/広告」と判定して自動ブロックしています。\n\n`;
+                    errorHtml += `💡 **直す方法 (いずれかをお試しください)**:\n`;
+                    errorHtml += `1. **このページで広告ブロックをOFFにする**: uBlock Origin, AdGuard, Braveのシールド等の設定で、このサイトをブロック除外にする\n`;
+                    errorHtml += `2. **通信モードを変更する**: 右上の「設定・難読化ツール」を開き、通信モードを **「AllOrigins プロキシ」** に変更して保存する`;
+                } else {
+                    errorHtml += `💡 **対策**: 「設定・難読化ツール」から通信モードを「AllOrigins プロキシ」に変更して再度お試しいただくか、GitHub Tokenの権限をご確認ください。`;
+                }
 
                 updateMessage(assistantMsgDiv, errorHtml);
             }
